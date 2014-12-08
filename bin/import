@@ -1,0 +1,78 @@
+#!/usr/bin/env node
+
+'use strict';
+
+/**
+ * Import list of users into CouchDB
+ **/
+
+var argv  = require('minimist')(process.argv.slice(2));
+var async = require('async');
+var log   = require('verbalize');
+var path  = require('path');
+
+var transformUsers     = require('../lib/transform-users.js');
+var importUsers        = require('../lib/import-users.js');
+var transformDatabases = require('../lib/transform-databases.js');
+var updateDatabases    = require('../lib/update-databases.js');
+
+
+// Verbalize `runner`
+log.runner = 'couchdb-importer-users';
+
+// fetch arguments
+
+// CouchDB server
+var dbUrl = process.env.COUCHDB_USERS_TARGET || argv.target;
+
+if (!dbUrl) {
+  // no target ???
+  log.error('Please specify target couchdb server URL (--target http://user:pass@example.com)');
+  return;
+}
+dbUrl = dbUrl.replace(/\/$/, ''); // remove end `/`
+
+
+// users list
+var usersPath = process.env.COUCHDB_USERS_SOURCE || argv.source;
+
+if (!usersPath) {
+  // no source ???
+  log.error('Please specify source path (--source ./path/to/users/list.json)');
+  return;
+}
+
+// replace existing users with provide data
+var replace = argv['replace'];
+
+var options = {
+  replace: replace // replace current users with provided data
+};
+
+var list;
+try {
+  list = require(path.resolve(usersPath));
+} catch (err) {
+  log.error('Could not fetch users list in [%s], reason: %s',
+      usersPath, err);
+  return;
+}
+
+
+var state = {
+  log    : log,
+  dbUrl  : dbUrl,
+  replace: replace
+};
+
+var operations = [
+  function (callback) {
+    callback(null, list);
+  },
+  transformUsers.bind(null, state),
+  importUsers.bind(null, state),
+  transformDatabases.bind(null, state),
+  updateDatabases.bind(null, state)
+];
+
+async.waterfall(operations);

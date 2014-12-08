@@ -1,0 +1,45 @@
+{
+  "name": "couchdb-importer-users",
+  "description": "Create users in CouchDB",
+  "version": "0.1.0",
+  "main": "index.js",
+  "author": "eHealth Africa",
+  "contributors": [
+    {
+      "name": "Obdulia Losantos",
+      "email": "obdulia.losantos@ehealthnigeria.org"
+    }
+  ],
+  "keywords": [
+    "cli",
+    "command line"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/eHealthAfrica/couchdb-importer-users.git"
+  },
+  "bugs": {
+    "url": "https://github.com/eHealthAfrica/couchdb-importer-users/issues"
+  },
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "https://github.com/eHealthAfrica/couchdb-importer-users/blob/master/LICENSE-MIT"
+    }
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "async": "^0.9.0",
+    "lodash": "^2.4.1",
+    "nano": "^5.11.2",
+    "minimist": "~0.0.8",
+    "verbalize": "~0.1.1"
+  },
+  "devDependencies": {
+    "mocha": "~1.21.5",
+    "nock": "^0.48.2"
+  },
+  "scripts": {
+    "test": "mocha"
+  }
+}
