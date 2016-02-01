@@ -1,5 +1,5 @@
 function(doc) {
-if(doc.details && doc.details.fullName) {
+if(doc._id && doc._id.match(/org.couchdb.user:.*/)) {
   emit(doc._id, doc)
   }
 }
