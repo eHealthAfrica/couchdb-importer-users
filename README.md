@@ -1,12 +1,43 @@
 # # eHealth CouchDB Users Importer
 
-> Import users into CouchDB
+- [Export users from CouchDB](#exporting)
+- [Import users into CouchDB](#importing)
 
 ## Setup
 
-```
 git clone git@github.com:eHealthAfrica/couchdb-users-bulk-import.git
 cd couchdb-users
+
+
+### Exporting
+
+#### json exporting
+
+TODO
+
+#### csv exporting
+
+The csv exporting functionality is provided by a `list` function running against a view function.
+
+- push the couchdb exporter design documents to the `_users` database.
+In order to make this step easier, using [couchapp](https://github.com/eHealthAfrica/tools-reference/blob/master/couchapp.md) is recommended.
+
+```
+cd csv_exporter
+couchapp push "http(s)://user:password@host:port/_users"
+```
+
+- get the results. It is necessary to request `include_docs=true` as well as to pass as parameters the fields we want.
+see [fields parameter documentation in the code](./csv_exporter/lists/csv.js#3-8L)
+
+```
+curl "http(s)://admin:password@host(:port)/_users/_design/csv/_list/csv/users/?include_docs=true&fields=_id~ID|details.fullName~Name|roles~Role(s)|details.fullName~Details.fullName|details.info~Details.info"
+```
+
+[](http://www.url.com)
+
+### Importing
+```
 npm install
 ```
 
