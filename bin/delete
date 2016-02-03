@@ -1,0 +1,85 @@
+/* 
+
+This script allows to delete a list of users, starting from a format
+which is similar to what returned by the CSV exporter. I am going to
+use it this way:
+
+ - Export all users from a database
+ - Copy the rows of users i want to delete (160 in my case, small
+   numbers are better done manually) to a new CSV file
+ - Use this script with the new CSV file in order to delete the docs
+
+Please be responsible when deleting stuff!
+
+I tested this creating and deleting a few users on a dev database
+
+*/
+
+var prom = require('request-promise')
+
+function genericCommunicationError() {
+  console.log('there was an error communicating with the server')
+  console.log(arguments)
+}
+
+function deleteUser (couch, name) {
+  // names are also ids in `_user`
+  var location = encodeURI(couch+'/_users/'+name)
+  return prom({ uri: location, json: true })
+    .then(function (user) {
+      user._deleted = true
+      return prom({ method: 'PUT', uri: location, body: JSON.stringify(user) })
+    })
+    .catch(genericCommunicationError)
+}
+
+function waitAndDelete (couch) {
+  return function (prev, curr) {
+    // about the following if, check doc about when reduce is used
+    // without an initial argument
+    if (prev.then) { // this is a promise about previous values
+      var pending = prev
+    } else { // this is an user name
+      var pending = deleteUser(couch, prev)
+    }
+    return pending
+      .finally(function () {
+        return deleteUser(couch, curr)
+      })
+  }
+}
+
+function removeUsers (couch) {
+  return function(err, rows) {
+    function getFirstColumn (row) { return row.shift() }
+    if (err) {
+      console.log(err)
+    } else {
+      var users = rows.map(getFirstColumn)
+      return prom({ uri: couch })
+        .catch(function () {
+          console.log('cannot connect to database '+couch)
+        })
+        .then(function () {
+          return users
+            .reduce(waitAndDelete(couch))
+            .catch(genericCommunicationError)
+        })
+     }
+  }
+}
+
+var argv = require('yargs')
+    .demand(1, 1)
+    .demand('c')
+    .alias('c', 'couch')
+    .describe('c', 'The Couch endpoint to use, including user and password')
+    .usage('Usage: $0 <users to delete>.csv')
+    .example('$0 to_be_deleted.csv -c https://user:password@host:port')
+    .argv
+var fs = require('fs')
+var csv = require('csv')
+
+var fileName = argv._.pop()
+var data = fs.readFileSync(fileName, 'utf8')
+csv.parse(data, { delimiter: ';' }, removeUsers(argv.couch))
