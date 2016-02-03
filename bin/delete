@@ -29,6 +29,9 @@ function deleteUser (couch, name) {
     .then(function (user) {
       user._deleted = true
       return prom({ method: 'PUT', uri: location, body: JSON.stringify(user) })
+        .then(function () {
+          console.log('deleted '+name)
+        })
     })
     .catch(genericCommunicationError)
 }
