@@ -17,21 +17,32 @@ TODO
 
 #### csv exporting
 
-The csv exporting functionality is provided by a `list` function running against a view function.
+The csv exporting functionality is provided by a `list` function
+running against a view function. In order to operate on the remote
+host conveniently, we suggest you to set some environment variables:
+
+```
+$  admin_password=verysecret # prefixing with a space will skip it in history
+$ host="https://admin:$admin_password@dev-gn-call-center.eocng.org/_couchdb/" # for example
+```
+
+After setting these, you can use the following commands
+verbatim. Exporting can be done by pushing the view if it is not on
+the database already, and then getting the results.
 
 - push the couchdb exporter design documents to the `_users` database.
 In order to make this step easier, using [couchapp](https://github.com/eHealthAfrica/tools-reference/blob/master/couchapp.md) is recommended.
 
 ```
 cd csv_exporter
-couchapp push "http(s)://user:password@host:port/_users"
+couchapp push "$host/_users"
 ```
 
 - get the results. It is necessary to request `include_docs=true` as well as to pass as parameters the fields we want.
 see [fields parameter documentation in the code](./csv_exporter/lists/csv.js#3-8L)
 
 ```
-curl "http(s)://admin:password@host(:port)/_users/_design/csv/_list/csv/users/?include_docs=true&fields=_id~ID|details.fullName~Name|roles~Role(s)|details.fullName~Details.fullName|details.info~Details.info"
+curl "$host/_users/_design/csv/_list/csv/users/?include_docs=true&fields=_id~ID|details.fullName~Name|roles~Role(s)|details.fullName~Details.fullName|details.info~Details.info"
 ```
 
 [](http://www.url.com)
